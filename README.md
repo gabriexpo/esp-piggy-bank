@@ -1,5 +1,5 @@
 # esp-piggy-bank
-A project to implement a smart piggy bank with esp8266 and arduino uno
+Un progetto per implementare un salvadanaio intelligente con alla base un ESP8266
 
 ### Componenti utilizzate
 
