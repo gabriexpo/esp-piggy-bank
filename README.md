@@ -1,5 +1,7 @@
 # esp-piggy-bank
-Un progetto per implementare un salvadanaio intelligente con alla base un ESP8266
+Un progetto per implementare un salvadanaio intelligente con alla base un ESP8266.
+
+** Nei prossimi giorni verrà aggiunto il codice
 
 ### Componenti utilizzate
 
