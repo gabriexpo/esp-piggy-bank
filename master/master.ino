@@ -20,6 +20,13 @@ EspMQTTClient client(
 const int steps_per_revolution = 2048;
 Stepper *myStepper = new Stepper(steps_per_revolution, D6, D4, D5, D3);
 
+// I2C data
+
+#define SDA_PIN D2
+#define SCL_PIN D1
+const int16_t I2C_MASTER = 0x42;
+const int16_t I2C_SLAVE = 0x08;
+
 
 // Soglie per il riconoscimento delle monete
 
@@ -63,8 +70,8 @@ void setup() {
   EEPROM.begin(16);
   EEPROM.get(0, total);
 
-  Serial.println(total);
-  Serial.println("ciao");
+  // Setting up i2c connection
+  Wire.begin(SDA_PIN, SCL_PIN, I2C_MASTER);
 
   // Setting up last message to MQTT server
   client.enableLastWillMessage("ESP8266/piggy-bank", "Piggy-bank going offline!");
@@ -99,6 +106,7 @@ void loop() {
     client.publish("ESP8266/piggy-bank", "Inserted coin: " + coin);
     
     // send to slave
+    i2c_transmission(coin);
     
     // reposition lever
     repositionLever();
@@ -140,6 +148,12 @@ void setBaseValue() {
   
   Serial.println("Base value:");
   Serial.println(baseValue);
+}
+
+void i2c_Transmission(String message) {
+  Wire.beginTransmission(I2C_SLAVE);  // transmit to slave
+  Wire.write(message);
+  Wire.endTransmission();    // stop transmitting
 }
 
 void measurement() {
