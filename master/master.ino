@@ -1,18 +1,36 @@
 #include <Stepper.h>
+#include <ESP_EEPROM.h>
+#include <EspMQTTClient.h>
+#include "costanti.h"
+
+// EspMQTTClient init
+
+EspMQTTClient client(
+  "ASUS",           // WIFI SSID
+  PASSWORD,         // da costanti.h
+  "192.168.1.100",  // MQTT Broker server ip
+  "MQTTUsername",   // Can be omitted if not needed
+  "MQTTPassword",   // Can be omitted if not needed
+  "ESP8266",     // Client name that uniquely identify your device
+  1883              // The MQTT port, default to 1883. this line can be omitted
+);
+
+// Stepper init
 
 const int steps_per_revolution = 2048;
-
 Stepper *myStepper = new Stepper(steps_per_revolution, D6, D4, D5, D3);
 
 
 // Soglie per il riconoscimento delle monete
 
 /*  Alcune delle misurazioni (n/m -> valore che oscilla tra n e m)
-  10 -> 194/195 - 195 - 195/196 - 195/196
-  20 -> 217/218 - 216 - 214 - 214
-  50 -> 229/230 - 229/230 - 229
-  1 -> 221/222 - 220/221 - 223 - 222 - 220
-  2 -> 241/242 - 241 - 238 - 238/240 - 240/241
+  Moneta -> [misurazioni]
+  
+  10  -> 194/195 - 195 - 195/196 - 195/196
+  20  -> 217/218 - 216 - 214 - 214
+  50  -> 229/230 - 229/230 - 229
+  1   -> 221/222 - 220/221 - 223 - 222 - 220
+  2   -> 241/242 - 241 - 238 - 238/240 - 240/241
 */
 
 #define MIN10c 190
@@ -29,30 +47,59 @@ Stepper *myStepper = new Stepper(steps_per_revolution, D6, D4, D5, D3);
 int baseValue = 0;
 int sensorValue = 0;
 
+float total;
 
-// the setup routine runs once when you press reset:
+// -----
+// SETUP
+// -----
+
 void setup() {
-  myStepper->setSpeed(5);
-  
   Serial.begin(115200);
+  
+  // Set Stepper motor speed
+  myStepper->setSpeed(5);
 
+  // Setting up EEPROM memory space and retrieving total
+  EEPROM.begin(16);
+  EEPROM.get(0, total);
+
+  Serial.println(total);
+  Serial.println("ciao");
+
+  // Setting up last message to MQTT server
+  client.enableLastWillMessage("ESP8266/piggy-bank", "Piggy-bank going offline!");
+
+  // Setting up base value for measurement
   setBaseValue();
 }
 
-// the loop routine runs over and over again forever:
+// ----
+// LOOP
+// ----
+
 void loop() {
-  // read the input on analog pin 0:
   
   int currSensorValue = analogRead(A0);
   if (abs(currSensorValue - sensorValue) > 5) {
     Serial.println(currSensorValue);
-    // cambiamento significativo
+    
     measurement();
     String coin = getCoin();
     Serial.println(coin);
+    
     // update total
+    if (coin != "nan") {
+        total += coin.toFloat();
+    }
+    EEPROM.put(0, total);
+    boolean res = EEPROM.commit();
+    Serial.println((res) ? "Commit ok" : "Commit failed");
+    
     // send to mqtt
+    client.publish("ESP8266/piggy-bank", "Inserted coin: " + coin);
+    
     // send to slave
+    
     // reposition lever
     repositionLever();
     Serial.println("Fine");
@@ -62,31 +109,44 @@ void loop() {
   
 }
 
+void onConnectionEstablished() {
+  // Subscribe to ESP8266/piggy-bank to check messages arrived to MQTT server
+  client.subscribe("ESP8266/piggy-bank", [](const String & payload) {
+    Serial.println("MQTT server received: " + payload);
+  });
+  
+  client.publish("ESP8266/piggy-bank", "Piggy-bank online!");
+}
+
 void setBaseValue() {
   int sum = 0;
   int current = 0;
+  
   for(int i = 0; i < 10; i++) {   // prime read per togliere dei risultati strani
     delay(100);
     current = analogRead(A0);
     Serial.println(current);
   }
+  
   for(int i = 0; i < 10; i++) {   // read per calcolare il valore base
     delay(100);
     current = analogRead(A0);
     Serial.println(current);
     sum += current;
   }
-  Serial.println(sum);
+  
   baseValue = sum / 10;
   sensorValue = baseValue;
+  
   Serial.println("Base value:");
   Serial.println(baseValue);
 }
 
 void measurement() {
-  int diff;
-
   Serial.println("Measurement:");
+
+  int diff;
+  
   do {
     delay(200);             // forse gioco un po' con il delay
     int currSensorValue = analogRead(A0);
@@ -94,10 +154,12 @@ void measurement() {
     sensorValue = currSensorValue;
     Serial.println(sensorValue);
   } while(diff > 3);
+  
 }
 
 String getCoin() {
   String coin;
+  
   if (sensorValue >= MIN10c && sensorValue <= MAX10c) {
     coin = "0,10";
   } else if (sensorValue >= MIN20c && sensorValue <= MAX20c) {
@@ -109,7 +171,7 @@ String getCoin() {
   } else if (sensorValue >= MIN2e && sensorValue <= MAX2e) {
     coin = "2,00";
   } else {
-    coin = "Non riconosciuta";
+    coin = "nan";
   }
   
   return coin;
@@ -117,8 +179,10 @@ String getCoin() {
 
 void repositionLever() {
   Serial.println("Reposition lever:");
+  
   int stepsTaken = 0;
   int current;
+  
   while (abs(sensorValue - baseValue) > 2) {
     myStepper->step(2);
     stepsTaken += 2;
