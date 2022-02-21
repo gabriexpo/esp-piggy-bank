@@ -11,7 +11,7 @@ EspMQTTClient client(
   "192.168.1.100",  // MQTT Broker server ip
   "MQTTUsername",   // Can be omitted if not needed
   "MQTTPassword",   // Can be omitted if not needed
-  "ESP8266",     // Client name that uniquely identify your device
+  "ESP8266",        // Client name that uniquely identify your device
   1883              // The MQTT port, default to 1883. this line can be omitted
 );
 
