@@ -1,4 +1,5 @@
 #include <Stepper.h>
+#include <Wire.h>
 #include <ESP_EEPROM.h>
 #include <EspMQTTClient.h>
 #include "costanti.h"
@@ -49,7 +50,7 @@ const int16_t I2C_SLAVE = 0x08;
 #define MIN50c 228
 #define MAX50c 231
 #define MIN2e 236
-#define MAX2e 243
+#define MAX2e 249
 
 int baseValue = 0;
 int sensorValue = 0;
@@ -106,7 +107,7 @@ void loop() {
     client.publish("ESP8266/piggy-bank", "Inserted coin: " + coin);
     
     // send to slave
-    i2c_transmission(coin);
+    i2c_Transmission(coin);
     
     // reposition lever
     repositionLever();
@@ -152,7 +153,7 @@ void setBaseValue() {
 
 void i2c_Transmission(String message) {
   Wire.beginTransmission(I2C_SLAVE);  // transmit to slave
-  Wire.write(message);
+  Wire.write(message.c_str());
   Wire.endTransmission();    // stop transmitting
 }
 
@@ -179,7 +180,7 @@ String getCoin() {
   } else if (sensorValue >= MIN20c && sensorValue <= MAX20c) {
     coin = "0,20";
   } else if (sensorValue >= MIN1e && sensorValue <= MAX1e) {
-    coin = "1,0";
+    coin = "1,00";
   } else if (sensorValue >= MIN50c && sensorValue <= MAX50c) {
     coin = "0,50";
   } else if (sensorValue >= MIN2e && sensorValue <= MAX2e) {
@@ -187,7 +188,7 @@ String getCoin() {
   } else {
     coin = "nan";
   }
-  
+
   return coin;
 }
 
@@ -198,7 +199,7 @@ void repositionLever() {
   int current;
   
   while (abs(sensorValue - baseValue) > 2) {
-    myStepper->step(2);
+    myStepper->step(-2);
     stepsTaken += 2;
     current = analogRead(A0);
     sensorValue = current;
@@ -209,7 +210,7 @@ void repositionLever() {
   //myStepper->step(-500); errore se provo con step troppo grandi
 
   for (int i = 0; i < stepsTaken / 2; i++) {
-    myStepper->step(-2);
+    myStepper->step(2);
     delay(1);
   }
 }

@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <Simple5641AS.h>
 
-#define T 10
+#define T 15
 
 // 5641AS stuff
 
@@ -26,30 +26,57 @@ void loop() {
 
 // Functions
 
-void receiveEvent() {
+void receiveEvent(size_t howMany) {
   String data = "";
   while (Wire.available() > 0) {
-    data += Wire.read();
+    data += (char) Wire.read();
   }
-  Serial.print(data);
+  Serial.println(data);
 
   // Chiamata alla funzione di display della moneta
-  displayCoin(data.toFloat());
+  displayCoin(data);
 }
 
 // Funzione per fare il display della moneta
-void displayCoin(float c) {
-  uint8_t x[] = {B01100000, B01100000, B01100000, B01100000};
-  
-  
-  switch(c) {
-    //case
-    default:
-      x[] = {};
-      break;
-    }
-  for (int i = 0; i < T; i++) {      // ciclo per mostrare il valore della moneta per T secondi
-    component.displayCode(10, x, 0);
-    delay(1000);
+void displayCoin(String c) {
+  uint8_t x[] = {B00000000, B00000000, B00000000, B00000000};
+
+  if (c == "0,10") {
+    //x = [B11111100, B11111101, B01100000, B11111100];   // 00.10
+    x[0] = 252;   // 00.10
+    x[1] = 253;
+    x[2] = 96;
+    x[3] = 252;
+  } else if (c == "0,20") {
+    //x = [B11111100, B11111101, B11011010, B11111100];   // 00.20
+    x[0] = 252;   // 00.20
+    x[1] = 253;
+    x[2] = 218;
+    x[3] = 252;
+  } else if (c == "0,50") {
+    //x = [B11111100, B11111101, B10110110, B11111100];   // 00.50
+    x[0] = 252;   // 00.50
+    x[1] = 253;
+    x[2] = 182;
+    x[3] = 252;
+  } else if (c == "1,00") {
+    //x = [B11111100, B01100001, B11111100, B11111100];   // 01.00
+    x[0] = 252;   // 01.00
+    x[1] = 97;
+    x[2] = 252;
+    x[3] = 252;
+  } else if (c == "2,00") {
+    //x = [B11111100, B11011011, B11111100, B11111100];   // 02.00
+    x[0] = 252;   // 02.00
+    x[1] = 219;
+    x[2] = 252;
+    x[3] = 252;
+  } else {
+    x[0] = 158;   // EEEE (Errore)
+    x[1] = 158;
+    x[2] = 158;
+    x[3] = 158; 
   }
+
+  component.displayCode(T, x, 0);
 }
