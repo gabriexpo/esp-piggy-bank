@@ -20,3 +20,7 @@ L'obbiettivo di questo progetto è quello di creare un salvadanaio intelligente 
 
 Il riconoscimento della moneta si basa su una leva ancorata ad una estremità che viene fatta ruotare su un perno dal passaggio della moneta. Il movimento rotatorio passa quindi ad alcuni ingranaggio che amplificano il movimento rotatorio prodotto dalla leva e rendono più semplice al potenziometro distinguere le varie monete in base alla grandezza.
 Una volta che la moneta riesce a passare tra la leva e la sponda rigida del salvadanaio la moneta viene identificata e la leva viene riposizionata dallo stepper motor che agisce sugli ingranaggi sottostanti alla leva.
+
+
+### Schema
+![image](https://user-images.githubusercontent.com/46323333/155336311-1ccf7f5b-ed3b-4946-a694-8a8bfa1b43ca.png)
