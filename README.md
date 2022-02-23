@@ -1,7 +1,6 @@
 # esp-piggy-bank
 Un progetto per implementare un salvadanaio intelligente con alla base un ESP8266.
 
-** Nei prossimi giorni verrà aggiunto il codice
 
 ### Componenti utilizzate
 
@@ -15,7 +14,7 @@ Un progetto per implementare un salvadanaio intelligente con alla base un ESP826
 
 ### Obbiettivo
 
-L'obbiettivo di questo progetto è quello di creare un salvadanaio intelligente (smart piggy bank) che sia in grado di riconoscere il tipo di moneta inserita e che, una volta riconosciuta la moneta, invii una notifica ad un server mqtt e salvi la situazione corrente del salvadanaio nella memoria EEPROM. Per dare un feedback all'utente che inserisce la moneta è predente anche un display che comunicare l'avvenuto riconoscimento della moneta mostrando il valore della moneta stessa.
+L'obbiettivo di questo progetto è quello di creare un salvadanaio intelligente (smart piggy bank) che sia in grado di riconoscere il tipo di moneta inserita e che, una volta riconosciuta la moneta, invii una notifica ad un server mqtt e salvi la situazione corrente del salvadanaio nella memoria EEPROM. Per dare un feedback all'utente che inserisce la moneta è presente anche un display che comunicare l'avvenuto riconoscimento della moneta mostrando il valore della moneta stessa.
 
 ### Riconoscimento della moneta
 
