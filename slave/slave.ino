@@ -38,6 +38,7 @@ void receiveEvent(size_t howMany) {
 }
 
 // Funzione per fare il display della moneta
+
 void displayCoin(String c) {
   uint8_t x[] = {B00000000, B00000000, B00000000, B00000000};
 
